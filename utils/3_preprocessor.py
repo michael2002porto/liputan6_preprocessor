@@ -14,8 +14,9 @@ from tqdm import tqdm
 from torch.utils.data import TensorDataset, DataLoader
 import lightning as L
 
+
 class Preprocessor(L.LightningDataModule):
-    def __init__(self, max_length, batch_size, lm_model = None):
+    def __init__(self, max_length, batch_size, lm_model=None):
         self.liputan6_dir = "datasets/liputan6_data/canonical"
 
         if lm_model:
@@ -23,21 +24,23 @@ class Preprocessor(L.LightningDataModule):
             self.tokenizer = AutoTokenizer.from_pretrained(lm_model)
         else:
             # indobart
-            self.tokenizer = IndoNLGTokenizer.from_pretrained("indobenchmark/indobart-v2")
-        
+            self.tokenizer = IndoNLGTokenizer.from_pretrained(
+                "indobenchmark/indobart-v2"
+            )
+
         self.max_length = max_length
         self.batch_size = batch_size
-    
+
     def join_paragraphs(self, paragraphs):
         # Join List of paragraphs to string paragraphs
         string_paragraph = ""
         for parag in paragraphs:
             for kal in parag:
                 kalimat = " ".join(kal)
-                string_paragraph += kalimat 
-        
+                string_paragraph += kalimat
+
         return string_paragraph
-    
+
     def join_summary(self, summaries):
         string_summary = ""
         # Join Kalimat dalam Satu Paragraf
@@ -46,60 +49,61 @@ class Preprocessor(L.LightningDataModule):
             string_summary += kal_sum
 
         return string_summary
-            
+
     def load_data(self, flag):
         list_files = os.listdir(f"{self.liputan6_dir}/{flag}")
 
         datasets = []
         for fl in list_files:
-            print(f"{self.liputan6_dir}/{flag}/{fl}")
-            with open(f"{self.liputan6_dir}/{flag}/{fl}", "r", encoding = "utf-8") as json_reader:
+            # print(f"{self.liputan6_dir}/{flag}/{fl}")
+            with open(
+                f"{self.liputan6_dir}/{flag}/{fl}", "r", encoding="utf-8"
+            ) as json_reader:
                 # load file jsonl (jsonl = kumpulan file json format di gabung jadi satu file)
-                
-                data_raw = json_reader.readlines()                   
+
+                data_raw = json_reader.readlines()
                 # json_raw = [json.loads(jline) for jline in json_reader.readlines().rstrip().splitlines()]
                 # print(data_raw)
                 # sys.exit()
 
-            json_raw = []  
+            json_raw = []
             for dd in data_raw:
-                
+
                 data_line = json.loads(dd)
-                paragraphs = self.join_paragraphs(data_line["clean_article"])
-                summary = self.join_paragraphs(data_line["clean_summary"])
-                
+                paragraphs = self.join_summary(data_line["clean_article"])
+                summary = self.join_summary(data_line["clean_summary"])
+
                 data = {
                     "id": data_line["id"],
                     "paragraphs": paragraphs,
                     "summary": summary,
                 }
-                
 
                 json_raw.append(data)
-            
+
             datasets += json_raw
-        
+
         # print(len(datasets))
-        
+
         return datasets
-    
-    
+
     def list2tensor(self, data):
         x_ids, x_att, y_ids, y_att = [], [], [], []
         for i_d, d in enumerate(tqdm(data)):
             # Token untuk Paragraphs (X)
             x_tok = self.tokenizer(
-                d["paragraphs"], truncation = True,
-                max_length = self.max_length,
-                padding = "max_length"
+                d["paragraphs"],
+                truncation=True,
+                max_length=self.max_length,
+                padding="max_length",
             )
 
             # Token untuk summary (Y)
             y_tok = self.tokenizer(
                 d["summary"],
-                truncation = True,
-                max_length= self.max_length,
-                padding= "max_length"
+                truncation=True,
+                max_length=self.max_length,
+                padding="max_length",
             )
 
             x_ids.append(x_tok["input_ids"])
@@ -110,7 +114,6 @@ class Preprocessor(L.LightningDataModule):
             # if i_d > 100:
             #     break
 
-
         x_ids = torch.tensor(x_ids)
         x_att = torch.tensor(x_att)
 
@@ -118,7 +121,6 @@ class Preprocessor(L.LightningDataModule):
         y_att = torch.tensor(y_att)
 
         return TensorDataset(x_ids, x_att, y_ids, y_att)
-
 
     def preprocessor(self):
         preprocessed_dir = "./datasets/preprocessed/liputan6/"
@@ -128,14 +130,12 @@ class Preprocessor(L.LightningDataModule):
 
         if not os.path.exists("datasets/preprocessed/liputan6/train.pt"):
             # raw data masih dalam format list
-            raw_train_data = self.load_data(flag = "train")
-            print("generated row data")
-            print(raw_train_data)
-            raw_val_data = self.load_data(flag = "dev")
-            raw_test_data = self.load_data(flag = "test")
+            raw_train_data = self.load_data(flag="train")
+            raw_val_data = self.load_data(flag="dev")
+            raw_test_data = self.load_data(flag="test")
 
             # list => tensor dataset
-            train_data = self.list2tensor(data = raw_train_data)
+            train_data = self.list2tensor(data=raw_train_data)
             val_data = self.list2tensor(raw_val_data)
             test_data = self.list2tensor(raw_test_data)
 
@@ -150,9 +150,8 @@ class Preprocessor(L.LightningDataModule):
             test_data = torch.load(preprocessed_dir + "test.pt")
 
         return train_data, val_data, test_data
-    
 
-    def setup(self, stage = None):
+    def setup(self, stage=None):
         train_data, val_data, test_data = self.preprocessor()
 
         if stage == "fit":
@@ -161,35 +160,38 @@ class Preprocessor(L.LightningDataModule):
         elif stage == "test":
             self.test_data = test_data
 
-
     def train_dataloader(self):
         # num_samples=0 training data tidak ada isinya
         return DataLoader(
-            dataset = self.train_data,
-            batch_size = self.batch_size,
-            shuffle = True,
-            num_workers = 3
+            dataset=self.train_data,
+            batch_size=self.batch_size,
+            shuffle=True,
+            num_workers=3,
         )
 
     def val_dataloader(self):
         return DataLoader(
-            dataset = self.val_data,
-            batch_size = self.batch_size,
-            shuffle = False,
-            num_workers = 3
+            dataset=self.val_data,
+            batch_size=self.batch_size,
+            shuffle=False,
+            num_workers=3,
         )
 
     def test_dataloader(self):
         return DataLoader(
-            dataset = self.test_data,
-            batch_size = self.batch_size,
-            shuffle = False,
-            num_workers = 3
+            dataset=self.test_data,
+            batch_size=self.batch_size,
+            shuffle=False,
+            num_workers=3,
         )
 
+
 if __name__ == "__main__":
-    pre = Preprocessor(max_length = 512, batch_size = 5, )
-    pre.setup(stage = "fit")
+    pre = Preprocessor(
+        max_length=512,
+        batch_size=5,
+    )
+    pre.setup(stage="fit")
     for data in pre.train_dataloader():
         print(len(data))
         sys.exit()
