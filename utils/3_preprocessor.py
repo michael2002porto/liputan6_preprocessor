@@ -16,7 +16,7 @@ import lightning as L
 
 class Preprocessor(L.LightningDataModule):
     def __init__(self, max_length, batch_size, lm_model = None):
-        self.liputan6_dir = "datasets/liputan6_data/canonical/train"
+        self.liputan6_dir = "datasets/liputan6_data/canonical"
 
         if lm_model:
             # selain indobart
@@ -48,33 +48,36 @@ class Preprocessor(L.LightningDataModule):
         return string_summary
             
     def load_data(self, flag):
-        list_files = os.listdir(self.liputan6_dir)
+        list_files = os.listdir(f"{self.liputan6_dir}/{flag}")
+
         datasets = []
         for fl in list_files:
-            if flag in fl:
-                with open(f"{self.liputan6_dir}/{fl}", "r", encoding = "utf-8") as json_reader:
-                    # load file jsonl (jsonl = kumpulan file json format di gabung jadi satu file)
-                    
-                    data_raw = json_reader.readlines()                   
-                    # json_raw = [json.loads(jline) for jline in json_reader.readlines().rstrip().splitlines()]
+            print(f"{self.liputan6_dir}/{flag}/{fl}")
+            with open(f"{self.liputan6_dir}/{flag}/{fl}", "r", encoding = "utf-8") as json_reader:
+                # load file jsonl (jsonl = kumpulan file json format di gabung jadi satu file)
                 
-                json_raw = []  
-                for dd in data_raw:
-                    
-                    data_line = json.loads(dd)
-                    paragraphs = self.join_paragraphs(data_line["clean_article"])
-                    summary = self.join_paragraphs(data_line["clean_summary"])
-                    
-                    data = {
-                        "id": data_line["id"],
-                        "paragraphs": paragraphs,
-                        "summary": summary,
-                    }
-                    
-    
-                    json_raw.append(data)
+                data_raw = json_reader.readlines()                   
+                # json_raw = [json.loads(jline) for jline in json_reader.readlines().rstrip().splitlines()]
+                # print(data_raw)
+                # sys.exit()
+
+            json_raw = []  
+            for dd in data_raw:
                 
-                datasets += json_raw
+                data_line = json.loads(dd)
+                paragraphs = self.join_paragraphs(data_line["clean_article"])
+                summary = self.join_paragraphs(data_line["clean_summary"])
+                
+                data = {
+                    "id": data_line["id"],
+                    "paragraphs": paragraphs,
+                    "summary": summary,
+                }
+                
+
+                json_raw.append(data)
+            
+            datasets += json_raw
         
         # print(len(datasets))
         
@@ -126,6 +129,8 @@ class Preprocessor(L.LightningDataModule):
         if not os.path.exists("datasets/preprocessed/liputan6/train.pt"):
             # raw data masih dalam format list
             raw_train_data = self.load_data(flag = "train")
+            print("generated row data")
+            print(raw_train_data)
             raw_val_data = self.load_data(flag = "dev")
             raw_test_data = self.load_data(flag = "test")
 
@@ -158,6 +163,7 @@ class Preprocessor(L.LightningDataModule):
 
 
     def train_dataloader(self):
+        # num_samples=0 training data tidak ada isinya
         return DataLoader(
             dataset = self.train_data,
             batch_size = self.batch_size,
