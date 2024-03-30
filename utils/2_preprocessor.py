@@ -77,6 +77,8 @@ class Preprocessor(L.LightningDataModule):
                 datasets += json_raw
         
         # print(len(datasets))
+
+        print(datasets)
         
         return datasets
     
@@ -140,9 +142,9 @@ class Preprocessor(L.LightningDataModule):
             torch.save(test_data, preprocessed_dir + "test.pt")
         else:
             # load existing preprocessed data
-            train_data = torch.load(train_data, preprocessed_dir + "train.pt")
-            val_data = torch.load(val_data, preprocessed_dir + "val.pt")
-            test_data = torch.load(test_data, preprocessed_dir + "test.pt")
+            train_data = torch.load(preprocessed_dir + "train.pt")
+            val_data = torch.load(preprocessed_dir + "val.pt")
+            test_data = torch.load(preprocessed_dir + "test.pt")
 
         return train_data, val_data, test_data
     
