@@ -16,7 +16,7 @@ import lightning as L
 
 class Preprocessor(L.LightningDataModule):
     def __init__(self, max_length, batch_size, lm_model = None):
-        self.liputan6_dir = "datasets/liputan6_data/canonical/test"
+        self.liputan6_dir = "datasets/liputan6_data/canonical/train"
 
         if lm_model:
             # selain indobart
@@ -77,8 +77,6 @@ class Preprocessor(L.LightningDataModule):
                 datasets += json_raw
         
         # print(len(datasets))
-
-        print(datasets)
         
         return datasets
     
