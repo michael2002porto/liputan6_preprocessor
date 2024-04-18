@@ -1,6 +1,7 @@
 import json
 import os
 import sys
+import re
 
 
 class TextToSpeechConverter:
@@ -8,12 +9,48 @@ class TextToSpeechConverter:
         self.liputan6_dir = "datasets/liputan6_data/canonical"
         self.preprocessed_dir = "./datasets/liputan6_audio/"
 
+        # Dictionary mapping month numbers to Indonesian names
+        self.month_names = {
+            "1": "januari",
+            "2": "februari",
+            "3": "maret",
+            "4": "april",
+            "5": "mei",
+            "6": "juni",
+            "7": "juli",
+            "8": "agustus",
+            "9": "september",
+            "10": "oktober",
+            "11": "november",
+            "12": "desember",
+        }
+
+    # Function to replace date patterns with month names
+    def replace_date(self, match):
+        day, month = match.groups()
+        return f"{int(day)} {self.month_names[month]}"
+
     def join_article(self, article):
         string_article = ""
         # Join Kalimat dalam Satu Paragraf
         for sentence in article:
-            kal_sum = " ".join(sentence)
+            kal_sum = ""
+            i = 0
+            for word in sentence:
+                kal_sum += word
+                next_word = ""
+                if i < len(sentence) - 1:
+                    next_word = sentence[i + 1]
+                if word not in ["(", "{", "["]:
+                    if next_word not in [".", ",", ":", ";", ")", "}", "]"]:
+                        kal_sum += " "
+                i += 1
             string_article += kal_sum
+
+        string_article = string_article.replace("Liputan6. com", "Liputan6.com")
+
+        date_pattern = r"\((\d{1,2})/(\d{1,2})\)"
+        string_article = re.sub(date_pattern, self.replace_date, string_article)
 
         return string_article
 
