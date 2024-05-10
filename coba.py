@@ -17,7 +17,7 @@ month_names = {
 }
 
 # Input text
-text = "This is a date (22/4) and another date (01/12)."
+text = "This is a date (22/50) and another date (01/12)."
 
 # Regular expression to find date patterns
 date_pattern = r'\((\d{1,2})/(\d{1,2})\)'

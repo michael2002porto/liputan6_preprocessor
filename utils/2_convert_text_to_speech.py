@@ -3,11 +3,11 @@ import os
 import sys
 import re
 
-
 class TextToSpeechConverter:
     def __init__(self):
         self.liputan6_dir = "datasets/liputan6_data/canonical"
-        self.preprocessed_dir = "./datasets/liputan6_audio/"
+        self.preprocessed_audio_dir = "datasets/liputan6_audio"
+        self.preprocessed_text_dir = "datasets/liputan6_text"
 
         # Dictionary mapping month numbers to Indonesian names
         self.month_names = {
@@ -70,7 +70,16 @@ class TextToSpeechConverter:
                 paragraphs = self.join_article(data_line["clean_article"])
 
                 print(paragraphs)
-                sys.exit()
+
+                # # Convert file.json to file.txt
+                # if not os.path.exists(f"{self.preprocessed_text_dir}/{flag}"):
+                #     os.makedirs(f"{self.preprocessed_text_dir}/{flag}")
+                
+                # file_name = fl.replace(".json", "")
+                # f = open(f"{self.preprocessed_text_dir}/{flag}/{file_name}.txt", "w")
+                # f.write(paragraphs)
+
+                # sys.exit()
 
     def text_to_speech_converter(self):
         if not os.path.exists(preprocessed_dir):
