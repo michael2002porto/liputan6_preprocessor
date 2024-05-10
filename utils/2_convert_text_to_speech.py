@@ -8,6 +8,9 @@ sys.path.append("..")
 from google_python_textToSpeech.google_tts import google_tts
 from google_python_textToSpeech.python_tts import python_tts
 
+sys.path.append("../vits_textToSpeech")
+from try_tts_2 import vits_tts
+
 
 class TextToSpeechConverter:
     def __init__(self):
@@ -92,8 +95,12 @@ class TextToSpeechConverter:
                 if not os.path.exists(f"{self.preprocessed_audio_dir}/{flag}/python_tts"):
                     os.makedirs(f"{self.preprocessed_audio_dir}/{flag}/python_tts")
 
+                if not os.path.exists(f"{self.preprocessed_audio_dir}/{flag}/vits_tts"):
+                    os.makedirs(f"{self.preprocessed_audio_dir}/{flag}/vits_tts")
+
                 google_tts(paragraphs, f"{self.preprocessed_audio_dir}/{flag}/google_tts/{file_name}.mp3")
                 python_tts(paragraphs, f"{self.preprocessed_audio_dir}/{flag}/python_tts/{file_name}.mp3")
+                vits_tts(paragraphs, f"{self.preprocessed_audio_dir}/{flag}/vits_tts/{file_name}.mp3", "../vits_textToSpeech/")
 
                 sys.exit()
 
