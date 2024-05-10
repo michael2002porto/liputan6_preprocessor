@@ -6,6 +6,7 @@ import re
 # access the parent folder
 sys.path.append("..")
 from google_python_textToSpeech.google_tts import google_tts
+from google_python_textToSpeech.python_tts import python_tts
 
 
 class TextToSpeechConverter:
@@ -85,10 +86,14 @@ class TextToSpeechConverter:
                 # f = open(f"{self.preprocessed_text_dir}/{flag}/{file_name}.txt", "w")
                 # f.write(paragraphs)
 
-                if not os.path.exists(f"{self.preprocessed_audio_dir}/{flag}"):
-                    os.makedirs(f"{self.preprocessed_audio_dir}/{flag}")
+                if not os.path.exists(f"{self.preprocessed_audio_dir}/{flag}/google_tts"):
+                    os.makedirs(f"{self.preprocessed_audio_dir}/{flag}/google_tts")
 
-                google_tts(paragraphs, f"{self.preprocessed_audio_dir}/{flag}/{file_name}.mp3")
+                if not os.path.exists(f"{self.preprocessed_audio_dir}/{flag}/python_tts"):
+                    os.makedirs(f"{self.preprocessed_audio_dir}/{flag}/python_tts")
+
+                google_tts(paragraphs, f"{self.preprocessed_audio_dir}/{flag}/google_tts/{file_name}.mp3")
+                python_tts(paragraphs, f"{self.preprocessed_audio_dir}/{flag}/python_tts/{file_name}.mp3")
 
                 sys.exit()
 
