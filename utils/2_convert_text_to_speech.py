@@ -3,6 +3,11 @@ import os
 import sys
 import re
 
+# access the parent folder
+sys.path.append("..")
+from google_python_textToSpeech.google_tts import google_tts
+
+
 class TextToSpeechConverter:
     def __init__(self):
         self.liputan6_dir = "datasets/liputan6_data/canonical"
@@ -74,12 +79,18 @@ class TextToSpeechConverter:
                 # # Convert file.json to file.txt
                 # if not os.path.exists(f"{self.preprocessed_text_dir}/{flag}"):
                 #     os.makedirs(f"{self.preprocessed_text_dir}/{flag}")
-                
-                # file_name = fl.replace(".json", "")
+
+                file_name = fl.replace(".json", "")
+
                 # f = open(f"{self.preprocessed_text_dir}/{flag}/{file_name}.txt", "w")
                 # f.write(paragraphs)
 
-                # sys.exit()
+                if not os.path.exists(f"{self.preprocessed_audio_dir}/{flag}"):
+                    os.makedirs(f"{self.preprocessed_audio_dir}/{flag}")
+
+                google_tts(paragraphs, f"{self.preprocessed_audio_dir}/{flag}/{file_name}.mp3")
+
+                sys.exit()
 
     def text_to_speech_converter(self):
         if not os.path.exists(preprocessed_dir):
